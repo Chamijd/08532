@@ -70,16 +70,16 @@ var randomItem = selectRandomItem(items);
                         const { upload } = require('./mega');
                         const mega_url = await upload(fs.createReadStream(rf), `${sock.user.id}.json`);
                         const string_session = mega_url.replace('https://mega.nz/file/', '');
-                        let md = "CHAMA-MD=" + string_session;
+                        let md = "MALAKA-MD~" + string_session;
                         let code = await sock.sendMessage(sock.user.id, { text: md });
-                        let desc = `> ශෙයා කරන්න එපා \n\n> ᴅᴏ ɴᴏᴛ ꜱʜᴇʀᴇ ᴛʜɪꜱ \n\n> இதை யாரிடமும் பகிர வேண்டாம்\n\n> ʀɪᴘᴏ https://github.com\n\nwhats app channel:-https://whatsapp.com/channel/0029Vb9WF4nJJhzeUCFS6M0u\n\n> ᴏᴡɴᴇʀ 94783314361\n\n\n> ᴘᴏᴡᴇʀᴅ ʙʏ chamindu- ᴍᴅ`;
+                        let desc = `*𝙳𝚘𝚗𝚝 𝚜𝚑𝚊𝚛𝚎 𝚝𝚑𝚒𝚜 𝚌𝚘𝚍𝚎 𝚠𝚒𝚝𝚑 𝚊𝚗𝚢𝚘𝚗𝚎!! 𝚄𝚜𝚎 𝚝𝚑𝚒𝚜 𝚌𝚘𝚍𝚎 𝚝𝚘 𝚌𝚛𝚎𝚊𝚝𝚎 MALAKA-MD 𝚆𝚑𝚊𝚝𝚜𝚊𝚙𝚙 𝚄𝚜𝚎𝚛 𝚋𝚘𝚝.*\n\n ◦ *Github:* https://github.com/Malaka-KG/MALAKA-MD-V1`;
                         await sock.sendMessage(sock.user.id, {
 text: desc,
 contextInfo: {
 externalAdReply: {
-title: "ᴄʜᴀᴍᴀ-ᴍᴅ",
-thumbnailUrl: "https://i.ibb.co/pjqsbyyW/7755.jpg",
-sourceUrl: "https://whatsapp.com/channel/0029Vb10Jv560eBfnX6Jaa3Y",
+title: "MALAKA MD",
+thumbnailUrl: "https://i.ibb.co/JrdxHSY/3439.jpg",
+sourceUrl: "https://whatsapp.com/channel/0029Vb0ux6E5Ui2VPhL49N2e",
 mediaType: 1,
 renderLargerThumbnail: true
 }  
@@ -88,14 +88,14 @@ renderLargerThumbnail: true
 {quoted:code })
                     } catch (e) {
                             let ddd = sock.sendMessage(sock.user.id, { text: e });
-                            let desc = `> ශෙයා කරන්න එපා \n\n> ᴅᴏ ɴᴏᴛ ꜱʜᴇʀᴇ ᴛʜɪꜱ \n\n> இதை யாரிடமும் பகிர வேண்டாம்\n\n> ʀɪᴘᴏ https://github.com\n\nwhats app channel:-https://whatsapp.com/channel/0029Vb9WF4nJJhzeUCFS6M0u\n\n> ᴏᴡɴᴇʀ 94783314361\n\n\n> ᴘᴏᴡᴇʀᴅ ʙʏ chamindu- ᴍᴅ`;
+                            let desc = `> ශෙයා කරන්න එපා \n\n> ᴅᴏ ɴᴏᴛ ꜱʜᴇʀᴇ ᴛʜɪꜱ \n\n> இதை யாரிடமும் பகிர வேண்டாம்\n\n> ʀɪᴘᴏ :- github.com\n\n> whats app channel:-https://whatsapp.com/channel/0029Vb9WF4nJJhzeUCFS6M0u\n\n> ᴏᴡɴᴇʀ :-94783314361\n\n\n> ᴘᴏᴡᴇʀᴅ ʙʏ chamindu- ᴍᴅ`;
                             await sock.sendMessage(sock.user.id, {
 text: desc,
 contextInfo: {
 externalAdReply: {
-title: "ᴄʜᴀᴍᴀ-ᴍᴅ",
-thumbnailUrl: "https://i.ibb.co/pjqsbyyW/7755.jpg",
-sourceUrl: "https://whatsapp.com/channel/0029Vb10Jv560eBfnX6Jaa3Y",
+title: "MALAKA MD",
+thumbnailUrl: "https://i.ibb.co/JrdxHSY/3439.jpg",
+sourceUrl: "https://whatsapp.com/channel/0029Vb0ux6E5Ui2VPhL49N2e",
 mediaType: 2,
 renderLargerThumbnail: true,
 showAdAttribution: true
