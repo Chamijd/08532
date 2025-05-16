@@ -1,169 +1,107 @@
-const { makeid } = require('./gen-id');
-const express = require('express');
-const fs = require('fs');
-let router = express.Router();
-const pino = require("pino");
-const {
-    default: makeWASocket,
-    useMultiFileAuthState,
-    delay,
-    Browsers,
-    makeCacheableSignalKeyStore
-} = require('@whiskeysockets/baileys');
-const { upload } = require('./mega');
+import express from 'express';
+import fs from 'fs';
+import pino from 'pino';
+import { makeWASocket, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser } from '@whiskeysockets/baileys';
+import { upload } from './mega.js';
 
+const router = express.Router();
+
+// Ensure the session directory exists
 function removeFile(FilePath) {
-    if (!fs.existsSync(FilePath)) return false;
-    fs.rmSync(FilePath, { recursive: true, force: true });
+    try {
+        if (!fs.existsSync(FilePath)) return false;
+        fs.rmSync(FilePath, { recursive: true, force: true });
+    } catch (e) {
+        console.error('Error removing file:', e);
+    }
 }
 
 router.get('/', async (req, res) => {
-    const id = makeid();
     let num = req.query.number;
+    let dirs = './' + (num || `session`);
+    
+    // Remove existing session if present
+    await removeFile(dirs);
+    
+    async function initiateSession() {
+        const { state, saveCreds } = await useMultiFileAuthState(dirs);
 
-    async function GIFTED_MD_PAIR_CODE() {
-        const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
         try {
-            const items = ["Safari"];
-            const randomItem = items[Math.floor(Math.random() * items.length)];
-
-            let sock = makeWASocket({
+            let GlobalTechInc = makeWASocket({
                 auth: {
                     creds: state.creds,
                     keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })),
                 },
                 printQRInTerminal: false,
-                generateHighQualityLinkPreview: true,
                 logger: pino({ level: "fatal" }).child({ level: "fatal" }),
-                syncFullHistory: false,
-                browser: Browsers.macOS(randomItem)
+                browser: ["Ubuntu", "Chrome", "20.0.04"],
             });
 
-            if (!sock.authState.creds.registered) {
-                await delay(1500);
+            if (!GlobalTechInc.authState.creds.registered) {
+                await delay(2000);
                 num = num.replace(/[^0-9]/g, '');
-                const code = await sock.requestPairingCode(num);
+                const code = await GlobalTechInc.requestPairingCode(num);
                 if (!res.headersSent) {
+                    console.log({ num, code });
                     await res.send({ code });
                 }
             }
 
-            sock.ev.on('creds.update', saveCreds);
-
-            sock.ev.on("connection.update", async (s) => {
+            GlobalTechInc.ev.on('creds.update', saveCreds);
+            GlobalTechInc.ev.on("connection.update", async (s) => {
                 const { connection, lastDisconnect } = s;
 
-                if (connection == "open") {
-                    await delay(5000);
-                    let rf = __dirname + `/temp/${id}/creds.json`;
+                if (connection === "open") {
+                    await delay(10000);
+                    const sessionGlobal = fs.readFileSync(dirs + '/creds.json');
 
-                    function generateRandomText() {
-                        const prefix = "3EB";
-                        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-                        let randomText = prefix;
-                        for (let i = prefix.length; i < 22; i++) {
-                            const randomIndex = Math.floor(Math.random() * characters.length);
-                            randomText += characters.charAt(randomIndex);
+                    // Helper to generate a random Mega file ID
+                    function generateRandomId(length = 6, numberLength = 4) {
+                        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                        let result = '';
+                        for (let i = 0; i < length; i++) {
+                            result += characters.charAt(Math.floor(Math.random() * characters.length));
                         }
-                        return randomText;
+                        const number = Math.floor(Math.random() * Math.pow(10, numberLength));
+                        return `${result}${number}`;
                     }
 
-                    const randomText = generateRandomText();
+                    // Upload session file to Mega
+                    const megaUrl = await upload(fs.createReadStream(`${dirs}/creds.json`), `${generateRandomId()}.json`);
+                    let stringSession = megaUrl.replace('https://mega.nz/file/', ''); // Extract session ID from URL
+                    stringSession = stringSession;  // Prepend your name to the session ID
 
-                    try {
-                        const mega_url = await upload(fs.createReadStream(rf), `${sock.user.id}.json`);
-                        const string_session = mega_url.replace('https://mega.nz/file/', '');
-                        let md = "CHAMA-MD=" + string_session;
+                    // Send the session ID to the target number
+                    const userJid = jidNormalizedUser(num + '@s.whatsapp.net');
+                    await GlobalTechInc.sendMessage(userJid, { text: stringSession });
 
-                        let code = await sock.sendMessage(sock.user.id, {
-                            text: md,
-                            contextInfo: {
-                                forwardingScore: 999,
-                                isForwarded: true,
-                                participant: '120363419192353625@newsletter',
-                                remoteJid: '120363419192353625@newsletter'
-                            }
-                        });
+                    // Send confirmation message
+                    await GlobalTechInc.sendMessage(userJid, { text: '*𝙳𝚘𝚗𝚝 𝚜𝚑𝚊𝚛𝚎 𝚝𝚑𝚒𝚜 𝚌𝚘𝚍𝚎 𝚠𝚒𝚝𝚑 𝚊𝚗𝚢𝚘𝚗𝚎!! 𝚄𝚜𝚎 𝚝𝚑𝚒𝚜 𝚌𝚘𝚍𝚎 𝚝𝚘 𝚌𝚛𝚎𝚊𝚝𝚎 MALAKA MD 𝚆𝚑𝚊𝚝𝚜𝚊𝚙𝚙 𝚄𝚜𝚎𝚛 𝚋𝚘𝚝.*\n\n ◦ *Github:* https://github.com/MALAKA-28/MALAKA-MD' });
 
-                        await delay(1000);
-
-                        let desc = `> ශෙයා කරන්න එපා \n\n> ᴅᴏ ɴᴏᴛ ꜱʜᴇʀᴇ ᴛʜɪꜱ \n\n> இதை யாரிடமும் பகிர வேண்டாம்\n\n> ʀɪᴘᴏ :- github.com\n\n> whats app channel:-https://whatsapp.com/channel/0029Vb9WF4nJJhzeUCFS6M0u\n\n> ᴏᴡɴᴇʀ :-94783314361\n\n\n> ᴘᴏᴡᴇʀᴅ ʙʏ chamindu- ᴍᴅ`;
-
-                        await sock.sendMessage(sock.user.id, {
-                            text: desc,
-                            contextInfo: {
-                                forwardingScore: 999,
-                                isForwarded: true,
-                                participant: '120363419192353625@newsletter',
-                                remoteJid: '120363419192353625@newsletter',
-                                externalAdReply: {
-                                    title: "CHAMA-MD",
-                                    body: "Powered by Chamindu-MD",
-                                    thumbnailUrl: "https://i.ibb.co/pjqsbyyW/7755.jpg",
-                                    sourceUrl: "https://whatsapp.com/channel/0029Vb9WF4nJJhzeUCFS6M0u",
-                                    mediaType: 1,
-                                    renderLargerThumbnail: true,
-                                    showAdAttribution: true
-                                }
-                            }
-                        }, { quoted: code });
-
-                    } catch (e) {
-                        let ddd = await sock.sendMessage(sock.user.id, {
-                            text: e.message || 'Unknown Error',
-                            contextInfo: {
-                                forwardingScore: 999,
-                                isForwarded: true,
-                                participant: '120363419192353625@newsletter',
-                                remoteJid: '120363419192353625@newsletter'
-                            }
-                        });
-
-                        let desc = `> ශෙයා කරන්න එපා \n\n> ᴅᴏ ɴᴏᴛ ꜱʜᴇʀᴇ ᴛʜɪꜱ \n\n> இதை யாரிடமும் பகிர வேண்டாம்\n\n> ʀɪᴘᴏ :- github.com\n\n> whats app channel:-https://whatsapp.com/channel/0029Vb9WF4nJJhzeUCFS6M0u\n\n> ᴏᴡɴᴇʀ :-94783314361\n\n\n> ᴘᴏᴡᴇʀᴅ ʙʏ chamindu- ᴍᴅ`;
-
-                        await sock.sendMessage(sock.user.id, {
-                            text: desc,
-                            contextInfo: {
-                                forwardingScore: 999,
-                                isForwarded: true,
-                                participant: '120363419192353625@newsletter',
-                                remoteJid: '120363419192353625@newsletter',
-                                externalAdReply: {
-                                    title: "CHAMA-MD",
-                                    body: "Powered by Chamindu-MD",
-                                    thumbnailUrl: "https://i.ibb.co/pjqsbyyW/7755.jpg",
-                                    sourceUrl: "https://whatsapp.com/channel/0029Vb9WF4nJJhzeUCFS6M0u",
-                                    mediaType: 1,
-                                    renderLargerThumbnail: true,
-                                    showAdAttribution: true
-                                }
-                            }
-                        }, { quoted: ddd });
-                    }
-
-                    await delay(10);
-                    await sock.ws.close();
-                    await removeFile('./temp/' + id);
-                    console.log(`👤 ${sock.user.id} Connected ✅ Restarting process...`);
-                    await delay(10);
-                    process.exit();
-
-                } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401) {
-                    await delay(10);
-                    GIFTED_MD_PAIR_CODE();
+                    // Clean up session after use
+                    await delay(100);
+                    removeFile(dirs);
+                    process.exit(0);
+                } else if (connection === 'close' && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode !== 401) {
+                    console.log('Connection closed unexpectedly:', lastDisconnect.error);
+                    await delay(10000);
+                    initiateSession(); // Retry session initiation if needed
                 }
             });
-
         } catch (err) {
-            console.log("Service restarted");
-            await removeFile('./temp/' + id);
+            console.error('Error initializing session:', err);
             if (!res.headersSent) {
-                await res.send({ code: "❗ Service Unavailable" });
+                res.status(503).send({ code: 'Service Unavailable' });
             }
         }
     }
 
-    return await GIFTED_MD_PAIR_CODE();
+    await initiateSession();
 });
 
-module.exports = router;
+// Global uncaught exception handler
+process.on('uncaughtException', (err) => {
+    console.log('Caught exception: ' + err);
+});
+
+export default router;
